@@ -34,18 +34,16 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/"{
 
 		describe( "persons Suite", function(){
 
-			beforeEach(function( currentSpec ){
-				// Setup as a new ColdBox request for this suite, VERY IMPORTANT. ELSE EVERYTHING LOOKS LIKE THE SAME REQUEST.
-				setup();
-			});
-
 			aroundEach( function( spec ) {
-				try{
-					arguments.spec.body();
-				} catch( any e ){
-					rethrow;
-				} finally{
-					transactionRollback();
+				setup();
+				transaction{
+					try{
+						arguments.spec.body();
+					} catch( any e ){
+						rethrow;
+					} finally{
+						transactionRollback();
+					}
 				}
 		   	});
 
@@ -73,7 +71,7 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/"{
 				// Retrieve it
 				var event = this.GET(
 					"persons.show", {
-						id : 1
+						id : event.getPrivateValue( "Person" ).getId()
 					}
 				);
 				// expectations go here.
@@ -89,7 +87,7 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/"{
 				);
 				var event = this.POST(
 					"persons.update", {
-						id : 1
+						id : event.getPrivateValue( "Person" ).getId()
 					}
 				);
 				// expectations go here.
@@ -107,7 +105,7 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/"{
 				// Create mock
 				var event = this.DELETE(
 					"persons.delete", {
-						id : 1
+						id : event.getPrivateValue( "Person" ).getId()
 					}
 				);
 				expect( event.getRenderedContent() ).toInclude( "Entity Deleted" );
