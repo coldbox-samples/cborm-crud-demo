@@ -1,0 +1,31 @@
+{
+    "name":"cbORM CRUD Sample Demo",
+    "version":"1.0.0",
+    "author":"Luis Majano",
+    "location":"forgeboxStorage",
+    "slug":"cborm-crud-demo",
+    "type":"demos",
+    "homepage":"https://github.com/coldbox-samples/cborm-crud-demo",
+    "documentation":"https://github.com/coldbox-samples/cborm-crud-demo",
+    "repository":{
+        "type":"git",
+        "url":"https://github.com/coldbox-samples/cborm-crud-demo"
+    },
+    "bugs":"https://github.com/coldbox-samples/cborm-crud-demo/issues",
+    "shortDescription":"A simple CRUD example with cborm",
+    "contributors":[],
+    "ignore":[],
+    "devDependencies":{
+        "testbox":"^3.0.0"
+    },
+    "installPaths":{
+        "coldbox":"coldbox/",
+        "testbox":"testbox/",
+        "cborm":"modules/cborm/"
+    },
+    "dependencies":{
+        "coldbox":"^5.0.0",
+        "cborm":"^2.0.0+114"
+    },
+    "scripts":{}
+}
