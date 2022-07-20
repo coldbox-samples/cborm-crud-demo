@@ -69,6 +69,23 @@ component extends="coldbox.system.testing.BaseTestCase" {
 				expect( event.getValue( "relocate_event" ) ).toBe( "persons" );
 			} );
 
+			it( "can show a persisted person", function(){
+				var target = getInstance( "Person" )
+					.populate( {
+						name  : "integration test",
+						email : "test@test.com",
+						age   : 20
+					} )
+					.save();
+
+				var event = this.POST( "persons.show", { id : target.getId() } );
+				var prc   = event.getPrivateCollection();
+				expect( prc.person ).toBeComponent();
+				expect( prc.person.getId() ).toBe( target.getId() );
+				expect( prc.person.getName() ).toBe( "integration test" );
+				expect( event.getRenderedContent() ).toInclude( "integration test" );
+			} );
+
 			it( "can update a persisted person", function(){
 				var target = getInstance( "Person" )
 					.populate( {

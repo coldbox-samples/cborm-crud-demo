@@ -47,47 +47,88 @@ component extends="coldbox.system.testing.BaseTestCase" {
 			} );
 
 			it( "can list all persons", function(){
-				var event = this.GET( "api/persons/index" );
+				var event = GET( "api/persons/index" );
 				// expectations go here.
-				expect( event.getRenderedContent() ).toBeJSON();
+				expect( event.getResponse() ).toHaveStatus( 200 );
+				expect( event.getResponse().getData() ).toBeArray();
 			} );
 
-			it( "create", function(){
-				var event  = this.POST( "api/persons/create" );
+			it( "create a new person", function(){
+				var event = POST(
+					"api/persons/create",
+					{ name : "api test", email : "apitest@test.com", age : 40 }
+				);
+				var response = event.getResponse();
 				// expectations go here.
-				var person = event.getPrivateValue( "Person" );
-				expect( person ).toBeComponent();
-				expect( person.getId() ).notToBeNull();
+				expect( response.getStatusCode() ).toBe( 200, response.getMessagesString() );
+				expect( response.getData() ).toBeStruct();
+				expect( response.getData().name ).toBe( "api test" );
 			} );
 
-			it( "show", function(){
-				// Create mock
-				var event  = this.POST( "api/persons/create" );
-				// Retrieve it
-				var event  = this.GET( "api/persons/show", { id : event.getPrivateValue( "Person" ).getId() } );
+			it( "can show a persisted person", function(){
+				var target = getInstance( "Person" )
+					.new( {
+						name  : "integration test",
+						email : "test@test.com",
+						age   : 20
+					} )
+					.save();
+				var event    = get( "api/persons/show/id/#target.getId()#" );
+				var response = event.getResponse();
 				// expectations go here.
-				var person = event.getPrivateValue( "Person" );
-				expect( person ).toBeComponent();
-				expect( person.getId() ).notToBeNull();
+				expect( response.getStatusCode() ).toBe( 200, response.getMessagesString() );
+				expect( response.getData() ).toBeStruct();
+				expect( response.getData().name ).toBe( "integration test" );
 			} );
 
-			it( "update", function(){
-				// Create mock
-				var event  = this.POST( "api/persons/create" );
-				var event  = this.POST( "api/persons/update", { id : event.getPrivateValue( "Person" ).getId() } );
+			it( "can show an exception when viewing a person that doesn't exist", function(){
+				var event    = get( "api/persons/show/id/#createUUID()#" );
+				var response = event.getResponse();
 				// expectations go here.
-				var person = event.getPrivateValue( "Person" );
-				expect( person ).toBeComponent();
-				expect( person.getId() ).notToBeNull();
-				expect( person.getName() ).toBe( "Bob" );
+				expect( response.getStatusCode() ).toBe( 404, response.getMessagesString() );
 			} );
 
-			it( "delete", function(){
-				// Create mock
-				var event = this.POST( "api/persons/create" );
-				// Create mock
-				var event = this.DELETE( "api/persons/delete", { id : event.getPrivateValue( "Person" ).getId() } );
-				expect( event.getRenderedContent() ).toInclude( "Entity Deleted" );
+			it( "show an exception when updating an invalid person", function(){
+				var event    = get( "api/persons/show/update", { id : createUUID(), name : "hello there" } );
+				var response = event.getResponse();
+				// expectations go here.
+				expect( response.getStatusCode() ).toBe( 404, response.getMessagesString() );
+			} );
+
+			it( "update a persisted person", function(){
+				var target = getInstance( "Person" )
+					.new( {
+						name  : "integration test",
+						email : "test@test.com",
+						age   : 20
+					} )
+					.save();
+				var event    = POST( "api/persons/update", { id : target.getId(), name : "integration test mod" } );
+				var response = event.getResponse();
+				// expectations go here.
+				expect( response.getStatusCode() ).toBe( 200, response.getMessagesString() );
+				expect( response.getData() ).toBeStruct();
+				expect( response.getData().name ).toBe( "integration test mod" );
+			} );
+
+			it( "can delete a valid person", function(){
+				var target = getInstance( "Person" )
+					.new( {
+						name  : "integration test",
+						email : "test@test.com",
+						age   : 20
+					} )
+					.save();
+				var event    = DELETE( "api/persons/delete", { id : target.getId() } );
+				var response = event.getResponse();
+				expect( response.getStatusCode() ).toBe( 200, response.getMessagesString() );
+				expect( event.getRenderedContent() ).toInclude( "Person Deleted" );
+			} );
+
+			it( "can show an exception when trying to delete an invalid person", function(){
+				var event    = DELETE( "api/persons/delete", { id : createUUID() } );
+				var response = event.getResponse();
+				expect( response.getStatusCode() ).toBe( 404, response.getMessagesString() );
 			} );
 		} );
 	}

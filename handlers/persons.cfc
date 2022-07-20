@@ -12,6 +12,14 @@ component {
 	}
 
 	/**
+	 * Show a person card
+	 */
+	function show( event, rc, prc ){
+		prc.person = getInstance( "Person" ).getOrFail( rc.id ?: 0 );
+		event.setView( "persons/show" );
+	}
+
+	/**
 	 * Editor for new or persisted persons
 	 */
 	function editor( event, rc, prc ){

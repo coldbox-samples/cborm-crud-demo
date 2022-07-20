@@ -35,13 +35,13 @@
 			<th>Name</th>
 			<th>Email</th>
 			<th>Age</th>
-			<th>Actions</th>
+			<th width="150">Actions</th>
 		</thead>
 		<tbody>
 			<cfloop array="#prc.persons#" index="person">
 				<tr>
 					<td>
-						<a href="#event.buildLink( 'persons.editor.id', person.getId() )#">
+						<a href="#event.buildLink( 'persons.show.id', person.getId() )#">
 							#person.getName()#
 						</a>
 					</td>
@@ -53,6 +53,13 @@
 							onSubmit : "return confirm( 'Are you sure?' )"
 						)#
 							#html.hiddenField( name : "id", bind : person )#
+							<a
+								href="#event.buildLink( 'persons.editor.id', person.getId() )#"
+								class="btn btn-sm btn-info"
+							>
+								Edit
+							</a>
+
 							<button
 								class="btn btn-sm btn-danger"
 								type="submit"

@@ -1,39 +1,37 @@
 /**
- * I manage Persons using an ActiveEntity approach
+ * This is a persons API using active entity
  */
-component {
+component extends="coldbox.system.RestHandler" {
 
 	/**
 	 * List all Persons
 	 */
 	function index( event, rc, prc ){
-		return getInstance( "Person" )
-			.list( asQuery = false )
-			.map( function( item ){
-				return item.getMemento( includes = "id" );
-			} );
+		event
+			.getResponse()
+			.setData(
+				getInstance( "Person" )
+					.list()
+					.map( function( item ){
+						return item.getMemento();
+					} )
+			);
 	}
 
 	/**
-	 * create a person
+	 * Create a person
 	 */
 	function create( event, rc, prc ){
-		prc.person = getInstance( "Person" )
-			.new( {
-				name      : "Luis",
-				email     : "lmajano@ortussolutions.com",
-				age       : 40,
-				lastVisit : now()
-			} )
-			.save();
-		return prc.person.getMemento( includes = "id" );
+		prc.person = getInstance( "Person" ).new( rc ).save();
+		event.getResponse().setData( prc.person.getMemento() );
 	}
 
 	/**
-	 * show a person
+	 * Show a single persisted person
 	 */
 	function show( event, rc, prc ){
-		return getInstance( "Person" ).get( rc.id ?: 0 ).getMemento( includes = "id" );
+		prc.person = getInstance( "Person" ).getOrFail( rc.id ?: 0 );
+		event.getResponse().setData( prc.person.getMemento() );
 	}
 
 	/**
@@ -42,24 +40,17 @@ component {
 	function update( event, rc, prc ){
 		prc.person = getInstance( "Person" )
 			.getOrFail( rc.id ?: "" )
-			.setName( "Bob" )
+			.populate( memento: rc, excludes: "id" )
 			.save();
-		return prc.person.getMemento( includes = "id" );
+		event.getResponse().setData( prc.person.getMemento() );
 	}
 
 	/**
 	 * Delete a Person
 	 */
 	function delete( event, rc, prc ){
-		try {
-			getInstance( "Person" ).getOrFail( rc.id ?: "" ).delete();
-			// Or use the shorthnd notation which is faster
-			// getIntance( "Person" ).deleteById( rc.id ?: '' )
-		} catch ( any e ) {
-			return "Error deleting entity: #e.message# #e.detail#";
-		}
-
-		return "Entity Deleted!";
+		getInstance( "Person" ).getOrFail( rc.id ?: "" ).delete();
+		event.getResponse().addMessage( "Person deleted!" );
 	}
 
 }
