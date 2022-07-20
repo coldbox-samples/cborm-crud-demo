@@ -1,20 +1,20 @@
 /*******************************************************************************
-*	Integration Test as BDD (CF10+ or Railo 4.1 Plus)
-*
-*	Extends the integration class: coldbox.system.testing.BaseTestCase
-*
-*	so you can test your ColdBox application headlessly. The 'appMapping' points by default to
-*	the '/root' mapping created in the test folder Application.cfc.  Please note that this
-*	Application.cfc must mimic the real one in your root, including ORM settings if needed.
-*
-*	The 'execute()' method is used to execute a ColdBox event, with the following arguments
-*	* event : the name of the event
-*	* private : if the event is private or not
-*	* prePostExempt : if the event needs to be exempt of pre post interceptors
-*	* eventArguments : The struct of args to pass to the event
-*	* renderResults : Render back the results of the event
-*******************************************************************************/
-component extends="coldbox.system.testing.BaseTestCase" appMapping="/"{
+ *	Integration Test as BDD
+ *
+ *	Extends the integration class: coldbox.system.testing.BaseTestCase
+ *
+ *	so you can test your ColdBox application headlessly. The 'appMapping' points by default to
+ *	the '/root' mapping created in the test folder Application.cfc.  Please note that this
+ *	Application.cfc must mimic the real one in your root, including ORM settings if needed.
+ *
+ *	The 'execute()' method is used to execute a ColdBox event, with the following arguments
+ *	* event : the name of the event
+ *	* private : if the event is private or not
+ *	* prePostExempt : if the event needs to be exempt of pre post interceptors
+ *	* eventArguments : The struct of args to pass to the event
+ *	* renderResults : Render back the results of the event
+ *******************************************************************************/
+component extends="coldbox.system.testing.BaseTestCase" {
 
 	/*********************************** LIFE CYCLE Methods ***********************************/
 
@@ -31,88 +31,89 @@ component extends="coldbox.system.testing.BaseTestCase" appMapping="/"{
 	/*********************************** BDD SUITES ***********************************/
 
 	function run(){
-
-		describe( "persons Suite", function(){
-
-			aroundEach( function( spec ) {
+		describe( "persons suite", function(){
+			// rollback transactions
+			aroundEach( function( spec ){
 				setup();
-				transaction{
-					try{
+				transaction {
+					try {
 						arguments.spec.body();
-					} catch( any e ){
+					} catch ( any e ) {
 						rethrow;
-					} finally{
+					} finally {
 						transactionRollback();
 					}
 				}
-		   	});
+			} );
 
-			it( "index", function(){
-				var event = this.GET( "persons.index" );
-				// expectations go here.
-				expect( event.getRenderedContent() ).toBeJSON();
-			});
+			it( "can list all persons", function(){
+				var event = this.GET( "persons/index" );
+				var prc   = event.getPrivateCollection();
+				expect( prc.persons ).toBeArray();
+				expect( event.getRenderedContent() ).toInclude( "Create Person" );
+			} );
 
-			it( "create", function(){
+			it( "can create a new person", function(){
 				var event = this.POST(
-					"persons.create"
-				);
-				// expectations go here.
-				var person = event.getPrivateValue( "Person" );
-				expect( person ).toBeComponent();
-				expect( person.getId() ).notToBeNull();
-			});
-
-			it( "show", function(){
-				// Create mock
-				var event = this.POST(
-					"persons.create"
-				);
-				// Retrieve it
-				var event = this.GET(
-					"persons.show", {
-						id : event.getPrivateValue( "Person" ).getId()
+					"persons.save",
+					{
+						name  : "integration test",
+						email : "test@test.com",
+						id    : "",
+						age   : 20
 					}
 				);
-				// expectations go here.
-				var person = event.getPrivateValue( "Person" );
-				expect( person ).toBeComponent();
-				expect( person.getId() ).notToBeNull();
-			});
+				var prc = event.getPrivateCollection();
+				expect( prc.person ).toBeComponent();
+				expect( prc.person.getId() ).notToBeNull();
+				expect( event.getValue( "relocate_event" ) ).toBe( "persons" );
+			} );
 
-			it( "update", function(){
-				// Create mock
+			it( "can update a persisted person", function(){
+				var target = getInstance( "Person" )
+					.populate( {
+						name  : "integration test",
+						email : "test@test.com",
+						age   : 20
+					} )
+					.save();
+
 				var event = this.POST(
-					"persons.create"
-				);
-				var event = this.POST(
-					"persons.update", {
-						id : event.getPrivateValue( "Person" ).getId()
+					"persons.save",
+					{
+						name  : "integration test mod",
+						email : target.getEmail(),
+						id    : target.getId(),
+						age   : 22
 					}
 				);
-				// expectations go here.
-				var person = event.getPrivateValue( "Person" );
-				expect( person ).toBeComponent();
-				expect( person.getId() ).notToBeNull();
-				expect( person.getName() ).toBe( "Bob" );
-			});
+				var prc = event.getPrivateCollection();
+				expect( prc.person ).toBeComponent();
+				expect( prc.person.getId() ).toBe( target.getId() );
+				expect( prc.person.getName() ).toBe( "integration test mod" );
+				expect( event.getValue( "relocate_event" ) ).toBe( "persons" );
+			} );
 
-			it( "delete", function(){
-				// Create mock
-				var event = this.POST(
-					"persons.create"
-				);
-				// Create mock
-				var event = this.DELETE(
-					"persons.delete", {
-						id : event.getPrivateValue( "Person" ).getId()
-					}
-				);
-				expect( event.getRenderedContent() ).toInclude( "Entity Deleted" );
-			});
+			it( "can delete a person that exists", function(){
+				var target = getInstance( "Person" )
+					.populate( {
+						name  : "integration test",
+						email : "test@test.com",
+						age   : 20
+					} )
+					.save();
 
-		});
+				var event = this.POST( "persons.delete", { id : target.getId() } );
+				var prc   = event.getPrivateCollection();
+				expect( getFlashScope().get( "notice" ).message ).toInclude( "Person deleted!" );
+			} );
 
+			it( "will throw an exception when trying to delete an invalid person", function(){
+				var event = this.POST( "persons.delete", { id : createUUID() } );
+				var prc   = event.getPrivateCollection();
+				expect( getFlashScope().get( "notice" ).message ).toInclude( "Invalid id sent!" );
+			} );
+		} );
 	}
 
 }

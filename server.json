@@ -1,7 +1,22 @@
 {
+    "name":"cbormcrud",
+    "app":{
+        "serverHomeDirectory":".engine/lucee5",
+        "cfengine":"lucee@5"
+    },
     "web":{
+        "http":{
+            "port":"3900"
+        },
         "rewrites":{
             "enable":"true"
         }
+    },
+    "jvm":{
+        "heapSize":"512"
+    },
+    "openBrowser":"false",
+    "cfconfig":{
+        "file":".cfconfig.json"
     }
 }

@@ -5,7 +5,7 @@
 */
 component{
 	// Application properties
-	this.name = hash( getCurrentTemplatePath() );
+	this.name = "ORM Crud Sample App";
 	this.sessionManagement = true;
 	this.sessionTimeout = createTimeSpan(0,0,30,0);
 	this.setClientCookies = true;
@@ -30,12 +30,12 @@ component{
 	this.mappings[ "/cborm" ] = COLDBOX_APP_ROOT_PATH & "modules/cborm";
 
 	// ORM Settings + Datasource
-	this.datasource = "coldbox"; // The default dsn name in the ColdBox scaffold
+	this.datasource = "cbormcrud"; // The default dsn name
 	this.ormEnabled = "true";
 	this.ormSettings = {
 		cfclocation = [ "models" ], // Where our entities exist
-		logSQL = true, // Remove after development to false.
-		dbcreate = "update", // Generate our DB
+		logSQL = false, // Remove after development to false.
+		dbcreate = "update", // Generate our DB from our ORM entities
 		automanageSession = false, // Let cborm manage it
 		flushAtRequestEnd = false, // Never do this! Let cborm manage it
 		eventhandling = true, // Enable events
@@ -45,7 +45,12 @@ component{
 
 	// application start
 	public boolean function onApplicationStart(){
-		application.cbBootstrap = new coldbox.system.Bootstrap( COLDBOX_CONFIG_FILE, COLDBOX_APP_ROOT_PATH, COLDBOX_APP_KEY, COLDBOX_APP_MAPPING );
+		application.cbBootstrap = new coldbox.system.Bootstrap(
+			COLDBOX_CONFIG_FILE,
+			COLDBOX_APP_ROOT_PATH,
+			COLDBOX_APP_KEY,
+			COLDBOX_APP_MAPPING
+		);
 		application.cbBootstrap.loadColdbox();
 		return true;
 	}
@@ -58,8 +63,9 @@ component{
 	// request start
 	public boolean function onRequestStart( string targetPage ){
 		// If we reinit our app, reinit the ORM too
-		if( application.cbBootstrap.isFWReinit() )
+		if( application.cbBootstrap.isFWReinit() ){
 			ormReload();
+		}
 		// Process ColdBox Request
 		application.cbBootstrap.onRequestStart( arguments.targetPage );
 

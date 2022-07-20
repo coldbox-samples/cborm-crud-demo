@@ -1,33 +1,30 @@
 {
-	"requestTimeoutEnabled":true,
-    "whitespaceManagement":"white-space-pref",
-	"requestTimeout":"0,0,5,0",
-	"cacheDefaultObject":"coldbox",
-    "caches":{
-        "coldbox":{
-            "storage":"true",
-            "type":"RAM",
-            "custom":{
-                "timeToIdleSeconds":"1800",
-                "timeToLiveSeconds":"3600"
-            },
-            "class":"lucee.runtime.cache.ram.RamCache",
-            "readOnly":"false"
-        }
-    },
-	"datasources" : {
-		 "coldbox":{
-			 "host":"${DB_HOST}",
-			 "dbdriver":"${DB_DRIVER}",
-			 "database":"${DB_DATABASE}",
-			 "dsn":"jdbc:mysql://{host}:{port}/{database}",
-			 "custom":"useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&autoReconnect=true",
-			 "port":"${DB_PORT}",
-			 "class":"${DB_CLASS}",
-			 "username":"${DB_USER}",
-			 "password":"${DB_PASSWORD}",
-			 "connectionLimit":"100",
-			 "connectionTimeout":"1"
-		 }
+	"adminPassword" : "${CFCONFIG_ADMINPASSWORD}",
+	"componentCacheEnabled":false,
+    "disableInternalCFJavaComponents":false,
+	"debuggingReportExecutionTimes":false,
+	"requestTimeoutEnabled": true,
+	"requestTimeout": "0,0,5,0",
+	"robustExceptionEnabled":true,
+	"saveClassFiles":false,
+	"systemErr":"System",
+	"systemOut":"System",
+	"thistimezone":"UTC",
+	"whitespaceManagement": "white-space-pref",
+	"datasources": {
+		"cbormcrud": {
+			"bundleName": "${DB_BUNDLENAME}",
+			"bundleVersion": "${DB_BUNDLEVERSION}",
+			"class": "${DB_CLASS}",
+			"connectionLimit": "100",
+			"custom": "useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useLegacyDatetimeCode=true&allowPublicKeyRetrieval=true",
+			"database": "${DB_DATABASE:cbormcrud}",
+			"dbdriver": "MySQL",
+			"dsn": "jdbc:mysql://{host}:{port}/{database}",
+			"host":"${DB_HOST:127.0.0.1}",
+			"password": "${DB_PASSWORD}",
+			"port": "${DB_PORT:3306}",
+			"username": "${DB_USER:root}"
+		}
 	}
 }
